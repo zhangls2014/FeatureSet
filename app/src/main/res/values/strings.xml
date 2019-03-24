@@ -1,3 +1,4 @@
 <resources>
   <string name="app_name">FeatureSet</string>
+  <string name="app_activity_title_recycler_view">RecyclerView</string>
 </resources>
