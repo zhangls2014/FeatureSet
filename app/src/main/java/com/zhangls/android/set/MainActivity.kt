@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
 
     // 内容填充
     tabItems.add(RecyclerViewFragment.newInstance())
-    val newTab = tabs.newTab().setText("RecyclerView")
+    val newTab = tabs.newTab().setText("Recycler")
     tabs.addTab(newTab)
 
     mSectionsPagerAdapter.notifyDataSetChanged()

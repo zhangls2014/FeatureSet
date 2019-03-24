@@ -3,16 +3,16 @@ package com.zhangls.android.set.recycler
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.zhangls.android.set.R
+import com.zhangls.android.set.recycler.diff.DiffRecyclerAdapter
 import com.zhangls.android.set.recycler.drag.DefaultItemTouchHelpCallback
 import com.zhangls.android.set.recycler.drag.DefaultItemTouchHelper
+import com.zhangls.android.set.recycler.drag.DragRecyclerAdapter
 import kotlinx.android.synthetic.main.activity_recycler_view.*
 import java.util.*
 
@@ -25,26 +25,6 @@ import java.util.*
 class RecyclerViewActivity : AppCompatActivity() {
 
   private val list = mutableListOf<ItemData>()
-  private val adapter = RecyclerAdapter()
-  private val touchHelper by lazy {
-    DefaultItemTouchHelper(
-      DefaultItemTouchHelpCallback(
-        object : DefaultItemTouchHelpCallback.OnItemTouchCallbackListener {
-
-          override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
-
-          }
-
-          override fun onSwiped(adapterPosition: Int) {}
-
-          override fun onMove(srcPosition: Int, targetPosition: Int): Boolean {
-            Collections.swap(list, srcPosition, targetPosition)
-            adapter.notifyItemMoved(srcPosition, targetPosition)
-            return true
-          }
-        })
-    )
-  }
 
 
   companion object {
@@ -70,17 +50,59 @@ class RecyclerViewActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_recycler_view)
     setSupportActionBar(toolbar)
+    supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
     val type = intent.getSerializableExtra(ARG_FUNCTION_TYPE)
     if (type is ItemType) {
       when (type) {
         ItemType.TYPE_DRAG -> loadDragInfo()
-        else -> {
-        }
+        ItemType.TYPE_DIFF -> loadDiffInfo()
       }
     }
+  }
 
-    // 填充数据
+  override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    when (item?.itemId) {
+      android.R.id.home -> {
+        onBackPressed()
+      }
+      else -> {
+      }
+    }
+    return super.onOptionsItemSelected(item)
+  }
+
+  /**
+   * 加载拖拽功能
+   */
+  private fun loadDragInfo() {
+    val adapter = DragRecyclerAdapter()
+    recycler.layoutManager = LinearLayoutManager(this)
+    recycler.adapter = adapter
+    recycler.addItemDecoration(DividerItemDecoration(this, RecyclerView.VERTICAL))
+
+    DefaultItemTouchHelper(
+      DefaultItemTouchHelpCallback(
+        object : DefaultItemTouchHelpCallback.OnItemTouchCallbackListener {
+
+          override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+
+          }
+
+          override fun onSwiped(adapterPosition: Int) {}
+
+          override fun onMove(srcPosition: Int, targetPosition: Int): Boolean {
+            Collections.swap(list, srcPosition, targetPosition)
+            adapter.notifyItemMoved(srcPosition, targetPosition)
+            return true
+          }
+        })
+    ).apply {
+      attachToRecyclerView(recycler)
+      setDragEnable(true)
+      setSwipeEnable(false)
+    }
+
     for (index in 1..10) {
       list.add(ItemData(index.toLong(), "item -> $index", ItemType.TYPE_DRAG))
     }
@@ -88,74 +110,17 @@ class RecyclerViewActivity : AppCompatActivity() {
   }
 
   /**
-   * 加载拖拽功能
+   * 加载Diff功能
    */
-  private fun loadDragInfo() {
+  private fun loadDiffInfo() {
+    val adapter = DiffRecyclerAdapter()
     recycler.layoutManager = LinearLayoutManager(this)
     recycler.adapter = adapter
     recycler.addItemDecoration(DividerItemDecoration(this, RecyclerView.VERTICAL))
 
-    touchHelper.attachToRecyclerView(recycler)
-    touchHelper.setDragEnable(true)
-    touchHelper.setSwipeEnable(false)
-  }
-
-  inner class RecyclerAdapter : ListAdapter<ItemData, ViewHolder>(MessageDiffCallback()) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-      val inflate =
-        LayoutInflater.from(parent.context).inflate(R.layout.recycler_item_list_text, parent, false)
-      return ViewHolder(inflate)
+    for (index in 1..10) {
+      list.add(ItemData(index.toLong(), "item -> $index", ItemType.TYPE_DIFF))
     }
-
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-      holder.itemView.setBackgroundColor(
-        ContextCompat.getColor(
-          holder.itemView.context,
-          android.R.color.white
-        )
-      )
-      holder.text.text = getItem(holder.adapterPosition).title
-      holder.text.setOnClickListener {
-        val value = list[holder.adapterPosition].title + "."
-        list[holder.adapterPosition] = list[holder.adapterPosition].copy(title = value)
-
-        val items = mutableListOf<ItemData>()
-        list.forEach { items.add(it) }
-
-        adapter.submitList(items)
-      }
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
-      if (payloads.isNullOrEmpty()) {
-        onBindViewHolder(holder, position)
-      } else {
-        val bundle: Bundle = payloads[0] as Bundle
-        holder.text.text = bundle.getString("title")
-      }
-    }
-  }
-
-  class MessageDiffCallback : DiffUtil.ItemCallback<ItemData>() {
-    override fun areItemsTheSame(oldItem: ItemData, newItem: ItemData): Boolean {
-      return oldItem.id == newItem.id
-    }
-
-    override fun areContentsTheSame(oldItem: ItemData, newItem: ItemData): Boolean {
-      return oldItem.title == newItem.title
-    }
-
-    override fun getChangePayload(oldItem: ItemData, newItem: ItemData): Any? {
-      val bundle = Bundle()
-      if (oldItem.title != newItem.title) {
-        bundle.putString("title", newItem.title)
-      }
-      return if (bundle.isEmpty) null else bundle
-    }
-  }
-
-  class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val text: AppCompatTextView = itemView.findViewById(R.id.text)
+    adapter.submitList(list)
   }
 }

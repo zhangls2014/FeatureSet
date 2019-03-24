@@ -9,5 +9,9 @@ enum class ItemType {
   /**
    * 拖拽
    */
-  TYPE_DRAG
+  TYPE_DRAG,
+  /**
+   * 数据更新
+   */
+  TYPE_DIFF
 }

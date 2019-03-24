@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.zhangls.android.set.R
@@ -32,10 +33,14 @@ class RecyclerViewFragment : Fragment() {
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    recycler.layoutManager = LinearLayoutManager(context)
-    recycler.adapter = itemAdapter
+    recycler.apply {
+      layoutManager = LinearLayoutManager(context)
+      adapter = itemAdapter
+      addItemDecoration(DividerItemDecoration(context, RecyclerView.VERTICAL))
+    }
 
-    items.add(ItemData(1, "Item 拖拽功能", ItemType.TYPE_DRAG))
+    items.add(ItemData(1, "拖拽功能", ItemType.TYPE_DRAG))
+    items.add(ItemData(2, "Diff功能", ItemType.TYPE_DIFF))
     itemAdapter.notifyDataSetChanged()
   }
 
@@ -58,11 +63,7 @@ class RecyclerViewFragment : Fragment() {
       holder.title.text = items[holder.adapterPosition].title
 
       holder.title.setOnClickListener {
-        when (items[holder.adapterPosition].type) {
-          ItemType.TYPE_DRAG -> {
-            RecyclerViewActivity.actionStart(it.context, items[holder.adapterPosition].type)
-          }
-        }
+        RecyclerViewActivity.actionStart(it.context, items[holder.adapterPosition].type)
       }
     }
   }
