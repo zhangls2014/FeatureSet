@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.google.android.material.tabs.TabLayout
 import com.zhangls.android.set.recycler.RecyclerViewFragment
+import com.zhangls.android.set.verification.VerificationFragment
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -51,8 +52,10 @@ class MainActivity : AppCompatActivity() {
 
     // 内容填充
     tabItems.add(RecyclerViewFragment.newInstance())
-    val newTab = tabs.newTab().setText("Recycler")
-    tabs.addTab(newTab)
+    tabs.addTab(tabs.newTab().setText("Recycler"))
+
+    tabItems.add(VerificationFragment.newInstance())
+    tabs.addTab(tabs.newTab().setText("验证码"))
 
     mSectionsPagerAdapter.notifyDataSetChanged()
   }
