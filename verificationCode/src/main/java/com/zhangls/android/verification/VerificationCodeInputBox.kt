@@ -15,9 +15,9 @@ import androidx.core.content.ContextCompat
 
 
 /**
- * Created by zhangls on 2018/8/31.
- *
  * 自定义验证码输入框组件。支持下划线，方框等形式
+ *
+ * @author zhangls
  */
 class VerificationCodeInputBox : AppCompatEditText {
 
