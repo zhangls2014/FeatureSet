@@ -215,7 +215,6 @@ class VerificationCodeInputBox : AppCompatEditText {
     }
 
     mTextPaint = with(Paint()) {
-      style = Paint.Style.STROKE
       isDither = true
       isAntiAlias = true
       color = mTextColor
